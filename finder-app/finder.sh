@@ -1,5 +1,5 @@
 #!/bin/sh
-
+#echo "isnide finder"
 filesdir=$1
 searchstr=$2
 
