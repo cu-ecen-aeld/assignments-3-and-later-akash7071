@@ -9,9 +9,10 @@ NUMFILES=10
 WRITESTR=AELD_IS_FUN
 WRITEDIR=/tmp/aeld-data
 username=$(cat conf/username.txt)
-echo "Removing the old writer utility and compiling as a native application"
-make clean
-make
+
+#echo "Removing the old writer utility and compiling as a native application"
+#make clean
+#make
 
 if [ $# -lt 3 ]
 then

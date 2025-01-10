@@ -1,4 +1,12 @@
 #include "systemcalls.h"
+#include "stdlib.h"
+#include <unistd.h>
+#include "stdio.h"
+#include <sys/wait.h>
+#include <fcntl.h>    // For open()
+#include <unistd.h>   // For dup2()
+#include <stdio.h>    // For perror()
+#include <stdlib.h>   // For exit()
 
 /**
  * @param cmd the command to execute with system()
@@ -16,8 +24,16 @@ bool do_system(const char *cmd)
  *   and return a boolean true if the system() call completed with success
  *   or false() if it returned a failure
 */
-
-    return true;
+	
+	
+	int returnCode=0;
+	
+	returnCode = system(cmd);
+	
+	if (returnCode == -1)
+		return false;
+	else
+    	return true;
 }
 
 /**
@@ -58,8 +74,34 @@ bool do_exec(int count, ...)
  *   as second argument to the execv() command.
  *
 */
-
-    va_end(args);
+	
+	pid_t pid;
+	
+	pid=fork();
+	
+	if(pid==-1)
+		return -1;
+	if(pid==0)
+	{
+		
+		execv(command[0],command);
+		printf("\n\n\r");
+		exit(EXIT_FAILURE);
+	}
+	
+  // Parent process
+    int status;
+    if (waitpid(pid, &status, 0) == -1) {
+        // waitpid failed
+        va_end(args);
+        return false;
+    }
+    // Check if the child exited due to execv() failure
+    if (WIFEXITED(status) && WEXITSTATUS(status) == EXIT_FAILURE) {
+        // Child exited with failure status
+        va_end(args);
+        return false;
+    }
 
     return true;
 }
@@ -93,7 +135,39 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *
 */
 
-    va_end(args);
+    //va_end(args);
+	pid_t pid;
+	
+	pid=fork();
+	
+	if(pid==-1)
+		return -1;
+	if(pid==0)
+	{
+		int fd=open(outputfile,O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		dup2(fd, STDOUT_FILENO);
+		close(fd);
+		
+		execv(command[0],command);
+		printf("\n\n\r");
+		exit(EXIT_FAILURE);
+	}
+	
+  // Parent process
+    int status;
+    if (waitpid(pid, &status, 0) == -1) {
+        // waitpid failed
+        va_end(args);
+        return false;
+    }
+    // Check if the child exited due to execv() failure
+    if (WIFEXITED(status) && WEXITSTATUS(status) == EXIT_FAILURE) {
+        // Child exited with failure status
+        va_end(args);
+        return false;
+    }
+
+    
 
     return true;
 }
